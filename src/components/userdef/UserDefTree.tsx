@@ -63,31 +63,14 @@ const UserDefTree: React.FC<UserDefTreeProps> = ({ categories, definitions, sele
     }
   };
 
-  // Hàm lấy màu cho icon và text dựa trên definitionType
-  const getDefinitionColors = (definitionType?: string) => {
-    switch (definitionType?.toLowerCase()) {
-      case 'sql':
-        return {
-          iconColor: 'text-orange-600',
-          bgColor: 'bg-orange-50',
-          borderColor: 'border-orange-200',
-          hoverBg: 'hover:bg-orange-100'
-        };
-      case 'javascript':
-        return {
-          iconColor: 'text-yellow-600',
-          bgColor: 'bg-yellow-50',
-          borderColor: 'border-yellow-200',
-          hoverBg: 'hover:bg-yellow-100'
-        };
-      default:
-        return {
-          iconColor: 'text-gray-600',
-          bgColor: 'bg-gray-50',
-          borderColor: 'border-gray-200',
-          hoverBg: 'hover:bg-gray-100'
-        };
-    }
+  // Màu sắc cơ bản thống nhất cho tất cả definition
+  const getDefinitionColors = () => {
+    return {
+      iconColor: 'text-gray-600',
+      bgColor: 'bg-white',
+      borderColor: 'border-gray-200',
+      hoverBg: 'hover:bg-blue-50'
+    };
   };
   return (
     <div className="w-72 border-r border-gray-200 h-full overflow-y-auto bg-gray-50">
@@ -130,7 +113,7 @@ const UserDefTree: React.FC<UserDefTreeProps> = ({ categories, definitions, sele
               {isExpanded && (
                 <div className="ml-3 space-y-0.5">
                   {categoryDefinitions.map(def => {
-                    const colors = getDefinitionColors(def.definitionType);
+                    const colors = getDefinitionColors();
                     return (
                       <div
                         key={def.definitionId}
@@ -157,7 +140,7 @@ const UserDefTree: React.FC<UserDefTreeProps> = ({ categories, definitions, sele
                             <div className={`text-xs px-1.5 py-0.5 rounded ${
                               selectedId === def.definitionId 
                                 ? 'bg-blue-700 text-blue-100' 
-                                : `${colors.bgColor} ${colors.iconColor} border ${colors.borderColor}`
+                                : 'bg-gray-100 text-gray-600 border border-gray-200'
                             }`}>
                               {def.definitionType.toUpperCase()}
                             </div>
