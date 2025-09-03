@@ -40,18 +40,18 @@ const SearchDialog: React.FC<SearchDialogProps> = ({
   // Initialize FlexSearch indexes
   const searchIndexes = useMemo(() => {
     const categoryIndex = new Index({
-      tokenize: "forward",
+      tokenize: "strict",
       resolution: 9
     });
 
     const definitionIndex = new Index({
-      tokenize: "forward", 
+      tokenize: "strict", 
       resolution: 9
     });
 
     // New index for searching content inside definitions (SQL, JS code)
     const contentIndex = new Index({
-      tokenize: "forward",
+      tokenize: "strict",
       resolution: 9
     });
 
@@ -124,27 +124,35 @@ const SearchDialog: React.FC<SearchDialogProps> = ({
         const existingResult = results.find(r => r.id === definition.definitionId);
         if (!existingResult) {
           const contentObj = definitionContentMap[definition.definitionId];
-          let snippet = '';
           
-          // Create a snippet showing where the match was found
+          // Additional validation: check if search term actually exists in content
           if (contentObj && contentObj.code) {
-            const codeLines = contentObj.code.split('\n');
-            const matchingLine = codeLines.find(line => 
-              line.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-            if (matchingLine) {
-              snippet = matchingLine.trim().substring(0, 100) + (matchingLine.length > 100 ? '...' : '');
+            const codeContent = contentObj.code.toLowerCase();
+            const searchTermLower = searchTerm.toLowerCase();
+            
+            // Only include if the exact search term is found in the content
+            if (codeContent.includes(searchTermLower)) {
+              let snippet = '';
+              
+              // Create a snippet showing where the match was found
+              const codeLines = contentObj.code.split('\n');
+              const matchingLine = codeLines.find(line => 
+                line.toLowerCase().includes(searchTermLower)
+              );
+              if (matchingLine) {
+                snippet = matchingLine.trim().substring(0, 100) + (matchingLine.length > 100 ? '...' : '');
+              }
+
+              results.push({
+                type: 'content',
+                id: definition.definitionId,
+                name: definition.definitionName,
+                categoryId: definition.categoryId,
+                matchType: 'content',
+                snippet: snippet
+              });
             }
           }
-
-          results.push({
-            type: 'content',
-            id: definition.definitionId,
-            name: definition.definitionName,
-            categoryId: definition.categoryId,
-            matchType: 'content',
-            snippet: snippet
-          });
         }
       }
     });
