@@ -1,9 +1,59 @@
 import { useRef } from "react";
 import { useNavigate } from 'react-router-dom';
+import JSZip from 'jszip';
+import { toast } from 'sonner';
 
 export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+
+  // Hàm xử lý file ZIP và tìm user_definition.json
+  const handleZipFile = async (file: File) => {
+    try {
+      const zip = new JSZip();
+      const zipData = await zip.loadAsync(file);
+      
+      // Tìm file user_definition.json trong ZIP
+      const userDefFile = zipData.file("user_definition.json");
+      if (!userDefFile) {
+        // Nếu không tìm thấy ở root, tìm trong các thư mục con
+        const files = Object.keys(zipData.files);
+        const userDefPath = files.find(path => path.endsWith("user_definition.json"));
+        
+        if (!userDefPath) {
+          toast.error("Không tìm thấy file user_definition.json trong file ZIP!");
+          return;
+        }
+        
+        const foundFile = zipData.file(userDefPath);
+        if (foundFile) {
+          const content = await foundFile.async("text");
+          toast.success("File đã được tải lên thành công!");
+          navigate('/userdef', { state: { fileContent: content } });
+        }
+      } else {
+        const content = await userDefFile.async("text");
+        toast.success("File đã được tải lên thành công!");
+        navigate('/userdef', { state: { fileContent: content } });
+      }
+    } catch (error) {
+      console.error("Lỗi khi xử lý file ZIP:", error);
+      toast.error("Lỗi khi giải nén file ZIP. Vui lòng kiểm tra lại file!");
+    }
+  };
+
+  // Hàm xử lý file được chọn
+  const handleFileSelect = async (file: File) => {
+    if (file.name.endsWith('.zip') || file.name === 'im_logicdesigner-data.zip') {
+      await handleZipFile(file);
+    } else if (file.name === "user_definition.json") {
+      const text = await file.text();
+      toast.success("File đã được tải lên thành công!");
+      navigate('/userdef', { state: { fileContent: text } });
+    } else {
+      toast.error("Vui lòng chọn file im_logicdesigner-data.zip hoặc user_definition.json");
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -13,7 +63,7 @@ export default function Home() {
           Chào mừng đến với User Definition Manager
         </h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Tải lên file user_definition.json để bắt đầu quản lý và xem các định nghĩa người dùng của bạn
+          Tải lên file im_logicdesigner-data.zip hoặc user_definition.json để bắt đầu quản lý và xem các định nghĩa người dùng của bạn
         </p>
       </div>
 
@@ -28,11 +78,8 @@ export default function Home() {
           onDrop={async (e) => {
             e.preventDefault();
             const file = e.dataTransfer.files[0];
-            if (file && file.name === "user_definition.json") {
-              const text = await file.text();
-              navigate('/userdef', { state: { fileContent: text } });
-            } else {
-              alert("Vui lòng thả đúng file user_definition.json");
+            if (file) {
+              await handleFileSelect(file);
             }
           }}
           onDragOver={(e) => e.preventDefault()}
@@ -51,7 +98,7 @@ export default function Home() {
                 hoặc <span className="text-blue-600 font-medium">nhấp để chọn file</span>
               </p>
               <p className="text-xs text-gray-400 mt-2">
-                Chỉ chấp nhận file user_definition.json
+                Chỉ chấp nhận file im_logicdesigner-data.zip hoặc user_definition.json
               </p>
             </div>
           </div>
@@ -60,14 +107,11 @@ export default function Home() {
           type="file"
           ref={fileInputRef}
           className="hidden"
-          accept=".json"
+          accept=".json,.zip"
           onChange={async (e) => {
             const file = e.target.files?.[0];
-            if (file && file.name === "user_definition.json") {
-              const text = await file.text();
-              navigate('/userdef', { state: { fileContent: text } });
-            } else {
-              alert("Vui lòng chọn đúng file user_definition.json");
+            if (file) {
+              await handleFileSelect(file);
             }
           }}
         />
@@ -83,7 +127,7 @@ export default function Home() {
             <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
             <div>
               <h4 className="font-medium text-blue-900">Tải file</h4>
-              <p className="text-sm text-blue-700">Chọn file user_definition.json từ máy tính của bạn</p>
+              <p className="text-sm text-blue-700">Chọn file im_logicdesigner-data.zip hoặc user_definition.json từ máy tính của bạn</p>
             </div>
           </div>
           <div className="flex items-start space-x-3">
