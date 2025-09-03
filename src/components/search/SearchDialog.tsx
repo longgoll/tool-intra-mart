@@ -289,7 +289,7 @@ const SearchDialog: React.FC<SearchDialogProps> = ({
                               : 'bg-green-100 text-green-700'
                           }`}>
                             {result.type === 'category' ? 'Danh mục' : 
-                             result.type === 'content' ? 'Nội dung' : 'Định nghĩa'}
+                             result.type === 'content' ? 'Nội dung' : 'file'}
                           </span>
                           {result.matchType === 'content' && (
                             <span className="px-1.5 py-0.5 text-xs bg-orange-100 text-orange-700 rounded">
